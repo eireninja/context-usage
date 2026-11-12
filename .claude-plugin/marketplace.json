@@ -1,0 +1,6 @@
+{
+  "name": "eireninja",
+  "description": "Mods for Claude Code by eireninja: the context-usage status band, prompt booster and context-limit helper.",
+  "owner": { "name": "eireninja" },
+  "plugins": [{ "name": "context-usage", "source": "./" }]
+}
