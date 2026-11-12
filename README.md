@@ -91,3 +91,7 @@ Uninstall the plugin, or, for a folder install, take the path out of `CLAUDE_COD
 - In the desktop app a mod cannot start a compaction itself, which is why COMPACT fills the prompt box and leaves the sending to you.
 - A session model with no guidance file of its own is boosted with the Opus 5.5 rules, and the toast says so.
 - The guidance files are the author's own distillations of Anthropic's and OpenAI's published prompting pages, with short quotes from them. They are not official documents, and they date from November 2026.
+
+## Licence
+
+MIT. See [LICENSE](LICENSE). The quotes from Anthropic's and OpenAI's published pages inside `guidance/` remain theirs.
