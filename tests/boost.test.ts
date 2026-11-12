@@ -47,12 +47,12 @@ function world(on: On, { model = 'claude-opus-5-5', store = {}, boost = answer('
 
 const typed = (text: string, extra: Partial<PromptSubmitInput> = {}): PromptSubmitInput => ({ text, wait: false, origin: { kind: 'composer' }, ...extra })
 
-test('a boost phrase is boosted by Haiku from the mod\'s own guidance, with auto boost off', async ($, on) => {
+test('a boost phrase is boosted by Opus at medium effort from the mod\'s own guidance, with auto boost off', async ($, on) => {
   const seen = world(on)
   await $.prompt.submit(typed('Sort out the RAW inbox.\nNow improve this prompt.'))
 
   expect(seen.calls.length).toBe(1)
-  expect(seen.calls[0]!.model).toBe('claude-haiku-5-5')
+  expect(seen.calls[0]!.model).toBe('claude-opus-5-5')
   expect(seen.calls[0]!.effort).toBe('medium')
   expect(seen.calls[0]!.prompt).toContain('Sort out the RAW inbox.')
   expect(seen.calls[0]!.prompt).toContain('earlier message')
@@ -117,14 +117,14 @@ test('with auto boost off, a long prompt goes through as typed and no model is c
   expect(seen.submitted[0]!.context).toBeUndefined()
 })
 
-test('with auto boost on, every long prompt is boosted in one Haiku call, and the original rides along', async ($, on) => {
+test('with auto boost on, every long prompt is boosted in one Opus call, and the original rides along', async ($, on) => {
   const seen = world(on, { store: { autoBoost: true }, model: 'claude-fable-5-2' })
   await $.prompt.submit(typed(BRIEF))
   // A reply typed while a turn is running is boosted just the same: length is the only rule
   await $.prompt.submit(typed(BRIEF, { turnId: 'turn-1' }))
 
   expect(seen.calls.length).toBe(2)
-  expect(seen.calls.every(call => call.model === 'claude-haiku-5-5' && call.effort === 'medium')).toBe(true)
+  expect(seen.calls.every(call => call.model === 'claude-opus-5-5' && call.effort === 'medium')).toBe(true)
   expect(file(seen.reads.at(-1))).toBe('fable-5.2.md')
   expect(seen.submitted.map(s => s.text)).toEqual(['BOOSTED PROMPT', 'BOOSTED PROMPT'])
   expect(seen.submitted[0]!.context?.some(c => c.includes('already boosted'))).toBe(true)

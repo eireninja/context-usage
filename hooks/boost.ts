@@ -1,9 +1,11 @@
-// Prompt boosting: a typed prompt is rewritten for the model that will run it, by Haiku, before the
+// Prompt boosting: a typed prompt is rewritten for the model that will run it, by Opus, before the
 // session reads it. A boost phrase forces it; while the band's BOOST switch is on, every typed
 // prompt of AUTO_MIN_WORDS words or more is boosted too. Reads only this mod's own guidance/ folder.
 import type { EngineInterface, On, PromptSubmitInput } from 'claude-code'
 
-export const BOOST_MODEL = 'claude-haiku-5-5'
+// Opus 5.5 at medium effort: on a long dictated prompt it kept more of what was said than Haiku or Sonnet did, in about the same time as Haiku at high
+export const BOOST_MODEL = 'claude-opus-5-5'
+const BOOST_NAME = 'Opus 5.5'
 // Auto boost takes every prompt of this many words or more (words, as dictated prompts often have no full stops)
 export const AUTO_MIN_WORDS = 40
 // What the band's word picker offers; AUTO_MIN_WORDS is the one in force until a pick is saved
@@ -127,7 +129,7 @@ export async function toggleAutoBoost($: EngineInterface): Promise<void> {
   autoBoost = !autoBoost
   $.ui.invalidate('ui.render')
   await $.store.set(STORE_KEY, autoBoost)
-  $.ui.toast(autoBoost ? `Boost on: every prompt of ${minWords}+ words is boosted by Haiku.` : 'Boost off: prompts are sent as typed.')
+  $.ui.toast(autoBoost ? `Boost on: every prompt of ${minWords}+ words is boosted by ${BOOST_NAME}.` : 'Boost off: prompts are sent as typed.')
 }
 
 export async function toggleShowBoost($: EngineInterface): Promise<void> {
@@ -176,7 +178,7 @@ export function registerBoost(on: On): void {
     }
 
     try {
-      $.ui.status(`Boosting prompt for ${target.name} (Haiku 5.5)...`)
+      $.ui.status(`Boosting prompt for ${target.name} (${BOOST_NAME})...`)
       const tail = (await sessionRows($))
         .slice(-8)
         .map(m => `[${m.role}]\n${clip(m.text, 3000)}`)

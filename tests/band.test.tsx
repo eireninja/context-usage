@@ -6,7 +6,7 @@ const NOW = Date.parse('2026-11-10T12:00:00Z')
 const BAND = {
   plugin: 'context-usage',
   component: 'AbovePrompt',
-  props: { hasSurvey: false, isWorking: false, maxRows: 4, bodyColumns: 120, scroll: { offset: 0, bodyRows: 4 }, view: {} },
+  props: { hasSurvey: false, isCollapsed: false, isWorking: false, maxRows: 4, bodyColumns: 120, scroll: { offset: 0, bodyRows: 4 }, view: {} },
 } as const
 
 // A session started in a folder that is no vault: the engine pushes one usage reading

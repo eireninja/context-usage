@@ -1,5 +1,5 @@
 {
   "name": "context-usage",
-  "version": "0.5.0",
-  "description": "The status band: folder, model and effort pickers, BOOST, PROMPT and COMPACT switches, context against a pickable limit with a warning and a compaction prompt, and the 5-hour and weekly usage windows; the prompt booster (Haiku, with its own guidance for Fable, Opus, Sonnet, Haiku and GPT targets); /ctx prints the figures"
+  "version": "0.6.0",
+  "description": "The status band: folder, model and effort pickers, BOOST, PROMPT and COMPACT switches, context against a pickable limit with a warning and a compaction prompt, and the 5-hour and weekly usage windows; the prompt booster (Opus 5.5 at medium effort, with its own guidance for Fable, Opus, Sonnet, Haiku and GPT targets); /ctx prints the figures"
 }
