@@ -106,8 +106,8 @@ const THROWAWAY = /(?:^|\/)(?:tmp|temp|scratchpad|node_modules|\.cache|bundled-s
 
 // What the engine, hooks and tools put in a user row that the person did not write, body and all
 const MACHINE_BLOCKS = /<(system-reminder|local-command-stdout|local-command-caveat|task-notification|command-name|command-message|command-args|agent-message)\b[^>]*>[\s\S]*?<\/\1[^>]*>/g
-// A row that is machine-written from its first words
-const MACHINE_ROW = /^\s*(?:\[SYSTEM NOTIFICATION|Another Claude session sent a message|Base directory for this skill:|The user hasn't heard from you|This session is being continued|Caveat:|\[Request interrupted)/
+// A row that is machine-written from its first words, this mod's own usage notices among them (hooks/watch.ts)
+const MACHINE_ROW = /^\s*(?:context-usage: |\[SYSTEM NOTIFICATION|Another Claude session sent a message|Base directory for this skill:|The user hasn't heard from you|This session is being continued|Caveat:|\[Request interrupted)/
 
 const flat = (text: string) => text.replace(/<\/?[a-z_-]+\b[^>]*>/gi, ' ').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim()
 const wordCount = (text: string) => text.split(/\s+/).filter(Boolean).length

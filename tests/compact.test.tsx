@@ -29,11 +29,13 @@ test('a slash command, its output, a reminder and a notice are not the person\'s
     said('<command-name>/plugin-authoring</command-name><command-args>make the band show the limit as a button</command-args>'),
     said('<command-name>/compact</command-name><command-args>Keep only what is needed OLD_COMPACT_PROMPT and more words</command-args>'),
     said('<command-name>/reload-plugins</command-name>\n<command-message>reload-plugins</command-message>\n<command-args></command-args>'),
+    // The mod's own usage notice arrives as a user row
+    said('context-usage: the WK usage window is at 92% (resets in 1d 7h). Do not launch subagents that may not finish before it runs out.'),
   ])
 
   expect(prompt).toContain('- First request: "Add a retry to the invoice export."')
   expect(prompt).toContain('  1. "make the band show the limit as a button"')
-  for (const machine of ['/advisor', 'Advisor set to', 'REMINDER_BODY', 'NOTICE_BODY', 'OLD_COMPACT_PROMPT', 'reload-plugins']) {
+  for (const machine of ['/advisor', 'Advisor set to', 'REMINDER_BODY', 'NOTICE_BODY', 'OLD_COMPACT_PROMPT', 'reload-plugins', 'usage window', 'Do not launch subagents']) {
     expect(prompt).not.toContain(machine)
   }
 })
