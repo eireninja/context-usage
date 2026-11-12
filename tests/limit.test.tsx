@@ -89,8 +89,13 @@ test('the compaction prompt keeps the task, the key files and the open steps, an
   for (const noise of ['RETRY_SENTINEL', 'grep', 'TOOL_OUTPUT_LINE_ONE', 'FILE_BODY_OF_CONFIG', 'OLD_CODE', 'NEW_CODE', 'TOOL_RESULT_BLOCK', 'Bash']) {
     expect(prompt).not.toContain(noise)
   }
-  expect(prompt).not.toContain('\n')
-  expect(compactionPrompt([])).toContain('Leave out tool calls')
+  // Laid out to be skimmed: four headed sections, each item on a line of its own
+  expect(prompt.split('\n').filter(line => line.startsWith('## '))).toEqual(['## Task in hand', '## Files', '## Keep', '## Where the work stood'])
+  expect(prompt).toContain('- First request: "Add a retry to the invoice export and keep the CSV format as it is."\n- Latest requests, oldest first:\n  1. "Use three attempts, not five."')
+  // It asks for nothing to be left out, and an empty session still gets the standing sections
+  for (const dropped of ['Leave out', 'finished or was abandoned', 'Keep only what is needed']) expect(prompt).not.toContain(dropped)
+  expect(compactionPrompt([]).split('\n').filter(line => line.startsWith('## '))).toEqual(['## Files', '## Keep'])
+  expect(compactionPrompt([])).toContain('- What was tried or set aside, and why.')
 })
 
 test('at the default limit the toast comes once at 350K and the compaction prompt once at 400K', async ($, on) => {
@@ -105,7 +110,7 @@ test('at the default limit the toast comes once at 350K and the compaction promp
 
   for (const tokens of [400_000, 410_000, 450_000]) await reading($, tokens)
   expect(seen.fills.length).toBe(1)
-  expect(seen.fills[0]!.startsWith('/compact Keep only what is needed')).toBe(true)
+  expect(seen.fills[0]!.startsWith('/compact Focus the summary on the work below.')).toBe(true)
   expect(seen.fills[0]).toContain('/work/src/export.ts')
   expect(seen.fills[0]).not.toContain('TOOL_OUTPUT_LINE_ONE')
   expect(seen.toasts.length).toBe(2)

@@ -185,9 +185,11 @@ function standing(text: string): string {
   return `${clipped(all, 400)} [...] ${from > 0 ? tail.slice(from) : tail.slice(tail.indexOf(' ') + 1)}`
 }
 
-// What /compact is told to keep, from the session itself: the person's own requests, the assistant's
+// What /compact is told to focus on, from the session itself: the person's own requests, the assistant's
 // last prose and the files its file tools changed or read. No tool call, tool input or tool result is
-// copied in. One line, so it travels as a slash command's argument.
+// copied in. Laid out under headings, one bullet an item, so it can be skimmed in the prompt box before
+// it is sent. It asks for nothing to be left out: the engine's own summary already drops tool output, and
+// telling it to drop finished work cost detail a session needs to carry on.
 export function compactionPrompt(rows: readonly SessionMessage[]): string {
   const requests = rows.map(requestOf).filter(Boolean)
   const first = requests[0] ?? ''
@@ -206,17 +208,31 @@ export function compactionPrompt(rows: readonly SessionMessage[]): string {
   const changed = recentOf(files.filter(f => f.writes + f.edits > 0), MAX_CHANGED, late)
   const read = recentOf(files.filter(f => f.writes + f.edits === 0), MAX_READ, late)
 
+  const quote = (text: string) => `"${clipped(text, 400)}"`
+  const section = (heading: string, lead: string, lines: string[]) => [`## ${heading}`, lead, ...lines].join('\n')
+
   return [
-    'Keep only what is needed to carry on with the task in hand.',
-    first && `The task as first given: "${clipped(first, 400)}"`,
-    recent.length > 0 &&
-      `The most recent requests, oldest first, the last one being the task in hand: ${recent.map((r, i) => `(${i + 1}) "${clipped(r, 400)}"`).join(' ')}`,
-    changed.length > 0 &&
-      `Key files changed in this session, latest first; keep each path and say what state it is in now: ${changed.map(stateOf).join('; ')}.`,
-    'Keep any other file the session changed through shell commands, with its path and state.',
-    read.length > 0 && `Files read for reference that still matter, keep their paths: ${read.map(f => f.path).join(', ')}.`,
-    'Keep the decisions made and the reason for each, anything the user asked for or ruled out, what is not done or not verified, and the open next steps.',
-    lastProse && `Where the work stood in the last reply: "${standing(lastProse.text)}"`,
-    'Leave out tool calls, tool output, command logs, file listings and file contents, and work that is finished or was abandoned.',
-  ].filter(Boolean).join(' ')
+    'Focus the summary on the work below.',
+    first &&
+      section(
+        'Task in hand',
+        recent.length > 0 ? 'The latest request is what the session carries on with.' : 'This request is what the session carries on with.',
+        recent.length > 0
+          ? [`- First request: ${quote(first)}`, '- Latest requests, oldest first:', ...recent.map((r, i) => `  ${i + 1}. ${quote(r)}`)]
+          : [`- Request: ${quote(first)}`],
+      ),
+    section('Files', 'Keep each path and say what state it is in now.', [
+      ...changed.map(f => `- Changed: ${stateOf(f)}`),
+      ...read.map(f => `- Read, still relevant: ${f.path}`),
+      '- Also keep any file changed through shell commands.',
+    ]),
+    section('Keep', 'Carry these through in full.', [
+      '- Decisions made, and the reason for each.',
+      '- What I asked for or ruled out, in my own words.',
+      '- What was tried or set aside, and why.',
+      '- What is not done or not verified, and the open next steps.',
+      '- Exact names, numbers, paths and commands that later work depends on.',
+    ]),
+    lastProse && section('Where the work stood', 'From the last full reply:', [`"${standing(lastProse.text)}"`]),
+  ].filter(Boolean).join('\n\n')
 }

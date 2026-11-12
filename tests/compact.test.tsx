@@ -31,8 +31,8 @@ test('a slash command, its output, a reminder and a notice are not the person\'s
     said('<command-name>/reload-plugins</command-name>\n<command-message>reload-plugins</command-message>\n<command-args></command-args>'),
   ])
 
-  expect(prompt).toContain('The task as first given: "Add a retry to the invoice export."')
-  expect(prompt).toContain('(1) "make the band show the limit as a button"')
+  expect(prompt).toContain('- First request: "Add a retry to the invoice export."')
+  expect(prompt).toContain('  1. "make the band show the limit as a button"')
   for (const machine of ['/advisor', 'Advisor set to', 'REMINDER_BODY', 'NOTICE_BODY', 'OLD_COMPACT_PROMPT', 'reload-plugins']) {
     expect(prompt).not.toContain(machine)
   }
@@ -42,10 +42,10 @@ test('the first request and the latest four are carried, oldest first, each cut 
   const long = `Change the limit picker so it also offers 250K. ${'This sentence only pads the request out. '.repeat(20)}`
   const prompt = compactionPrompt([said('First: build the exporter.'), ...['two', 'three', 'four', 'five'].map(n => said(`Request number ${n} here.`)), said(long)])
 
-  expect(prompt).toContain('The task as first given: "First: build the exporter."')
+  expect(prompt).toContain('- First request: "First: build the exporter."')
   expect(prompt).not.toContain('Request number two here.')
-  expect(prompt).toContain('(1) "Request number three here." (2) "Request number four here." (3) "Request number five here." (4) "Change the limit picker so it also offers 250K.')
-  expect(prompt).toContain('the last one being the task in hand')
+  expect(prompt).toContain('- Latest requests, oldest first:\n  1. "Request number three here."\n  2. "Request number four here."\n  3. "Request number five here."\n  4. "Change the limit picker so it also offers 250K.')
+  expect(prompt).toContain('The latest request is what the session carries on with.')
   expect(prompt).not.toMatch(/pads the request ou[^t]/)
 })
 
@@ -65,9 +65,9 @@ test('changed files carry what was done to them, scratch and generated files are
     ]),
   ])
 
-  expect(prompt).toContain('/work/src/retry.ts (written in full, then 1 edit); /work/src/export.ts (2 edits).')
-  expect(prompt).toContain('Files read for reference that still matter, keep their paths: /work/src/config.ts.')
-  expect(prompt).toContain('Keep any other file the session changed through shell commands')
+  expect(prompt).toContain('- Changed: /work/src/retry.ts (written in full, then 1 edit)\n- Changed: /work/src/export.ts (2 edits)')
+  expect(prompt).toContain('- Read, still relevant: /work/src/config.ts')
+  expect(prompt).toContain('- Also keep any file changed through shell commands.')
   for (const dropped of ['scratchpad', 'node_modules', 'api.d.ts', 'shot.png', 'FILE_BODY', 'TOOL_OUTPUT']) expect(prompt).not.toContain(dropped)
 })
 
@@ -84,10 +84,12 @@ test('in a long session only the files touched lately are listed', () => {
 test('where the work stood is the last full reply, start and end, not a note made in passing', () => {
   const prompt = compactionPrompt([said('Add a retry to the invoice export.'), replied(LONG_REPLY), replied('Checking one more thing.')])
 
-  expect(prompt).toContain('Where the work stood in the last reply: "The retry is in and the export keeps its CSV format.')
+  expect(prompt).toContain('## Where the work stood\nFrom the last full reply:\n"The retry is in and the export keeps its CSV format.')
   expect(prompt).toContain('Two things are open: the upload test is not written, and the staging run is unverified."')
   expect(prompt).not.toContain('Checking one more thing.')
-  expect(prompt).toContain('what is not done or not verified, and the open next steps')
+  // A session with one request names it as the request, with no list of later ones
+  expect(prompt).toContain('## Task in hand\nThis request is what the session carries on with.\n- Request: "Add a retry to the invoice export."')
+  expect(prompt).toContain('- What is not done or not verified, and the open next steps.')
   expect(prompt.length).toBeLessThan(2500)
 })
 
@@ -219,7 +221,9 @@ test('the last reply is carried as prose: no heading marks, table rules or closi
   const prompt = compactionPrompt([said('Add a retry to the invoice export.'), replied(reply)])
 
   expect(prompt).toContain('as planned. What changed: | File | Change | | export.ts | three attempts | Open: the staging run is unverified')
-  for (const furniture of ['##', '---', 'scr · eli', '**']) expect(prompt).not.toContain(furniture)
+  // The quoted reply carries none of its own page furniture; the prompt's own headings sit outside it
+  const quoted = prompt.split('## Where the work stood')[1]!
+  for (const furniture of ['##', '---', 'scr · eli', '**']) expect(quoted).not.toContain(furniture)
 })
 
 test('with COMPACT on, which it is until switched off, the limit puts the compaction prompt in the prompt box once', async ($, on) => {
@@ -228,8 +232,8 @@ test('with COMPACT on, which it is until switched off, the limit puts the compac
 
   expect(seen.toasts[0]).toBe('Approaching context limit. Prepare for compaction.')
   expect(seen.fills.length).toBe(1)
-  expect(seen.fills[0]!.startsWith('/compact Keep only what is needed')).toBe(true)
-  expect(seen.fills[0]).toContain('/work/src/export.ts (1 edit)')
+  expect(seen.fills[0]!.startsWith('/compact Focus the summary on the work below.')).toBe(true)
+  expect(seen.fills[0]).toContain('- Changed: /work/src/export.ts (1 edit)')
   expect(seen.toasts.at(-1)).toContain('press Enter to compact')
   expect(seen.compactions).toEqual([])
 })
